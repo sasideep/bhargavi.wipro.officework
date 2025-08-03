@@ -48,7 +48,6 @@
     function addRow(data = {}) {
       const row = document.createElement("tr");
 
-      // Standard input fields
       ["alias", "ticket", "contact", "timezone", "hours"].forEach(key => {
         const cell = document.createElement("td");
         const input = document.createElement("input");
@@ -58,7 +57,6 @@
         row.appendChild(cell);
       });
 
-      // Multi-line Issue field
       const issueCell = document.createElement("td");
       const textarea = document.createElement("textarea");
       textarea.value = data["issue"] || "";
@@ -66,12 +64,15 @@
       issueCell.appendChild(textarea);
       row.appendChild(issueCell);
 
-      // Action button
       const actionCell = document.createElement("td");
       const delBtn = document.createElement("button");
       delBtn.textContent = "Delete";
       delBtn.className = "btn btn-danger btn-sm";
-      delBtn.onclick = () => row.remove();
+      delBtn.onclick = () => {
+        if (confirm("Are you sure you want to delete this entry?")) {
+          row.remove();
+        }
+      };
       actionCell.appendChild(delBtn);
       row.appendChild(actionCell);
 
@@ -115,8 +116,9 @@
 
     function downloadExcel() {
       const date = document.querySelector("#logDate").value || 'support-log';
-      const wb = XLSX.utils.book_new();
-      const data = [["Alias", "Ticket", "Contact Number", "Timezone", "Business Hours", "Issue"]];
+      const headers = ["Alias", "Ticket", "Contact Number", "Timezone", "Business Hours", "Issue"];
+      const data = [];
+
       table.querySelectorAll("tr").forEach(row => {
         const rowData = [];
         row.querySelectorAll("input, textarea").forEach(el => {
@@ -124,7 +126,10 @@
         });
         if (rowData.length) data.push(rowData);
       });
-      const ws = XLSX.utils.aoa_to_sheet(data);
+
+      const sheetData = [headers, ...data];
+      const ws = XLSX.utils.aoa_to_sheet(sheetData);
+      const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Log");
       XLSX.writeFile(wb, `${date}.xlsx`);
     }
